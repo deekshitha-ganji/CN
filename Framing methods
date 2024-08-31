@@ -1,0 +1,298 @@
+Implement the data link layer framing methods such as character count and bit stuffing.
+\\ character count
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+#define MAX_LEN 50
+
+// Function to slice a string based on start index and length
+void slice_string(const char *str, int start, int length, char *result) {
+    strncpy(result, str + start, length);
+    result[length] = '\0';  // Null-terminate the result string
+}
+
+int main() {
+    char s[MAX_LEN];
+    char sliced_str[MAX_LEN];
+    int nf, d, c;
+
+    printf("Enter the main string: ");
+    scanf("%s", s);
+
+    printf("Enter the number of frames: ");
+    scanf("%d", &nf);
+
+    printf("Frame count - (0 for equal, 1 for unequal): ");
+    scanf("%d", &d);
+
+    int str_len = strlen(s);
+    int frame_size;
+
+    if (d) {
+        // Unequal frame sizes
+        int pos = 0;
+        for (int i = 0; i < nf; i++) {
+            printf("Enter frame size for frame %d: ", i + 1);
+            scanf("%d", &c);
+
+            if (pos + c <= str_len) {
+                slice_string(s, pos, c, sliced_str);
+                printf("Frame %d count: %d - %s\n", i + 1, c, sliced_str);
+                pos += c;
+            } else {
+                printf("No string left for further frames.\n");
+                break;
+            }
+        }
+    } else {
+        // Equal frame sizes
+        if (str_len % nf == 0) {
+            frame_size = str_len / nf;
+        } else {
+            printf("String length is not evenly divisible by the number of frames.\n");
+            return 1;
+        }
+
+        for (int i = 0; i < nf; i++) {
+            slice_string(s, i * frame_size, frame_size, sliced_str);
+            printf("Frame %d count: %d - %s\n", i + 1, frame_size, sliced_str);
+        }
+    }
+
+    return 0;
+}
+
+Output:
+(1) Enter the main string: ComputerNetworks
+Enter the number of frames: 4
+Frame count - (0 for equal, 1 for unequal): 0
+Frame 1 count: 4 - Comp
+Frame 2 count: 4 - uter
+Frame 3 count: 4 - Netw
+Frame 4 count: 4 - orks
+(2) Enter the main string: ComputerNetworks
+Enter the number of frames: 6
+Frame count - (0 for equal, 1 for unequal): 1
+Enter frame size for frame 1: 6
+Frame 1 count: 6 - Comput
+Enter frame size for frame 2: 5
+Frame 2 count: 5 - erNet
+Enter frame size for frame 3: 3
+Frame 3 count: 3 - wor
+Enter frame size for frame 4: 3
+No string left for further frames.
+
+//Bitstuffing
+#include <stdio.h>
+#include <string.h>
+
+#define MAX 1000
+
+char* stuffing(const char s[], const char flag[]) {
+    static char res[MAX];
+    char ans[MAX] = {0};
+    int c = 0, i, ind = 0, result_index = 0;
+    for (i = 0; s[i] != '\0'; i++) {
+        if (s[i] == '1') {
+            c += 1;
+        } else {
+            c = 0;
+        }
+
+        if (c == 5) {
+            strncpy(ans + result_index, s + ind, i - ind + 1);
+            result_index += (i - ind + 1);
+            ans[result_index++] = '0'; 
+            c = 0;
+            ind = i + 1;
+        }
+    }
+    strncpy(ans + result_index, s + ind, i - ind + 1);
+    strcpy(res, flag);
+    strcat(res, ans);
+    strcat(res, flag);
+
+    return res;
+}
+void remove_zeros_after_five_ones(char *str) {
+    int len = strlen(str);
+    int write_index = 0; 
+    int i = 0;
+
+    while (i < len) {
+        if (i <= len - 5 && str[i] == '1' && str[i+1] == '1' && str[i+2] == '1' && str[i+3] == '1' && str[i+4] == '1') {
+            str[write_index++] = str[i++];
+            str[write_index++] = str[i++];
+            str[write_index++] = str[i++];
+            str[write_index++] = str[i++];
+            str[write_index++] = str[i++];
+            if (str[i] == '0') {
+                i++; 
+            }
+        } else {
+            str[write_index++] = str[i++];
+        }
+    }
+    
+    str[write_index] = '\0';
+}
+
+void destuffing(char *str, const char flag[]) {
+    int len = strlen(str);
+    int flag_len = strlen(flag);
+    if (strncmp(str, flag, flag_len) == 0) {
+        memmove(str, str + flag_len, len - flag_len + 1);
+    }
+
+    len = strlen(str);
+    if (len >= flag_len && strncmp(str + len - flag_len, flag, flag_len) == 0) {
+        str[len - flag_len] = '\0';
+    }
+
+    remove_zeros_after_five_ones(str);
+}
+
+int main() {
+    char s[MAX];
+    char flag[] = "01111110";
+
+    printf("Enter binary string: ");
+    scanf("%s", s);
+
+    char* stuffed_string = stuffing(s, flag);
+    printf("Stuffed string: %s\n", stuffed_string);
+
+    destuffing(stuffed_string, flag);
+    printf("Destuffed string: %s\n", stuffed_string);
+
+    return 0;
+}
+
+Output:
+(1) Enter binary string: 0110111110
+Stuffed string: 011111100110111110001111110
+Destuffed string: 0110111110
+(2) Enter binary string: 1111111111
+Stuffed string: 0111111011111011111001111110
+Destuffed string: 1111111111
+
+Implement the data link layer framing methods such as character stuffing
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+#define MAX 1000
+
+void insertSubstring(char* s, const char* sub, int pos) {
+    char temp[MAX];
+    strcpy(temp, s + pos); 
+    s[pos] = '\0';         
+    strcat(s, sub);        
+    strcat(s, temp);       
+}
+
+char* chrstuff(const char s[], const char stx, const char etx, const char dle) {
+    char* stuffed = (char*)malloc(MAX * sizeof(char)); 
+    int i, j = 0;
+    stuffed[j++] = stx;
+    for (i = 0; s[i] != '\0'; i++) {
+        if (s[i] == stx || s[i] == etx || s[i] == dle) {
+            stuffed[j++] = dle;
+        }
+        stuffed[j++] = s[i];
+    }
+    stuffed[j++] = etx;
+    stuffed[j] = '\0'; 
+
+    return stuffed; 
+}
+void removeSubstring(char* s, const char* sub) {
+    char* pos = strstr(s, sub);
+    if (pos != NULL) {
+        int len = strlen(sub);
+        memmove(pos, pos + len, strlen(pos + len) + 1);
+    }
+}
+
+char* chrdestuff(const char stuffed[], const char stx, const char etx, const char dle, const char* sub) {
+    char* destuffed = (char*)malloc(MAX * sizeof(char)); 
+    int i = 1, j = 0; 
+    while (stuffed[i] != '\0' && stuffed[i + 1] != '\0') {
+        if (stuffed[i] == dle && (stuffed[i + 1] == stx || stuffed[i + 1] == etx || stuffed[i + 1] == dle)) {
+            i++; 
+        }
+        destuffed[j++] = stuffed[i++];
+    }
+
+    destuffed[j] = '\0';
+    if (sub[0] != '\0') {
+        removeSubstring(destuffed, sub);
+    }
+
+    return destuffed; 
+}
+
+int main() {
+    char s[MAX], stx, etx, dle, sub[MAX] = "";
+    int insertSub = 0, pos = 0;
+
+    printf("Enter the main string: ");
+    fgets(s, MAX, stdin); 
+    s[strcspn(s, "\n")] = '\0'; 
+
+    printf("Enter the STX character: ");
+    scanf("%c", &stx);
+    getchar();
+    
+    printf("Enter the ETX character: ");
+    scanf("%c", &etx);
+    getchar();
+    
+    printf("Enter the escape (DLE) character: ");
+    scanf("%c", &dle);
+    getchar();
+    
+    printf("Do you want to insert a substring at a specific position? (0 for no, 1 for yes): ");
+    scanf("%d", &insertSub);
+    getchar();
+
+    if (insertSub) {
+        printf("Enter the substring: ");
+        fgets(sub, MAX, stdin);
+        sub[strcspn(sub, "\n")] = '\0'; 
+
+        printf("Enter the position after which to insert the substring: ");
+        scanf("%d", &pos);
+        insertSubstring(s, sub, pos);
+    }
+
+    char* stuffed_string = chrstuff(s, stx, etx, dle);
+    printf("Stuffed string = %s\n", stuffed_string);
+
+    char* destuffed_string = chrdestuff(stuffed_string, stx, etx, dle, sub);
+    printf("Destuffed string = %s\n", destuffed_string);
+
+    free(stuffed_string); 
+    free(destuffed_string);
+
+    return 0;
+}
+
+Output:
+(1) Enter the main string: Hello World
+Enter the STX character: q
+Enter the ETX character: w
+Enter the escape (DLE) character: o
+Do you want to insert a substring at a specific position? (0 for no, 1 for yes): 0
+Stuffed string = qHelloo Woorldw
+Destuffed string = Hello World
+(2) Enter the main string: Python Programming
+Enter the STX character: e
+Enter the ETX character: r
+Enter the escape (DLE) character: u
+Do you want to insert a substring at a specific position? (0 for no, 1 for yes): 1
+Enter the substring: grapes
+Enter the position after which to insert the substring: 4
+Stuffed string = ePythgurapueson Purogurammingr
+Destuffed string = Python Programming
