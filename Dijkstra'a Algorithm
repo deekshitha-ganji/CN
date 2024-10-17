@@ -1,0 +1,301 @@
+Implementing Dijkstra's Algorithm to determine the shortest path between the routers
+
+#include <stdio.h>
+#include <stdlib.h> // For malloc, free
+#include <limits.h> // For using INT_MAX
+
+// Function to find the vertex with the minimum distance value, from
+// the set of vertices not yet included in the shortest path tree
+int minDistance(int dist[], int visited[], int N) {
+    int min = INT_MAX, min_index;
+
+    for (int v = 0; v < N; v++)
+        if (!visited[v] && dist[v] <= min) {
+            min = dist[v];
+            min_index = v;
+        }
+
+    return min_index;
+}
+
+// Function to print the shortest path from source to destination
+void printPath(int parent[], int vertex) {
+    if (parent[vertex] == -1) {
+        // This is the source node
+        printf("%d", vertex + 1); // Print as 1-indexed
+        return;
+    }
+    printPath(parent, parent[vertex]);
+    printf(" -> %d", vertex + 1); // Print as 1-indexed
+}
+
+// Function to print the shortest distances and paths from source
+void printSolution(int dist[], int parent[], int N, int src) {
+    printf("\nNode\t Shortest Distance\tPrevious Node\n");
+    for (int i = 0; i < N; i++) {
+        printf("%d \t\t %d \t\t", i + 1, dist[i]);
+        if (parent[i] == -1) {
+            printf("N/A\n");
+        } else {
+            printf("%d\n", parent[i] + 1); // Print as 1-indexed
+        }
+    }
+}
+
+// Dijkstra's algorithm implementation to find the shortest path
+void dijkstra(int** graph, int N, int src, int parent[]) {
+    int dist[N];      // The output array. dist[i] will hold the shortest distance from src to i
+    int visited[N];   // visited[i] will be true if vertex i is included in shortest path tree
+
+    // Initialize all distances as INFINITE, visited[] as false, and parent[] as -1
+    for (int i = 0; i < N; i++) {
+        dist[i] = INT_MAX;
+        visited[i] = 0;
+        parent[i] = -1;
+    }
+
+    // Distance of source vertex from itself is always 0
+    dist[src] = 0;
+
+    // Find shortest path for all vertices
+    for (int count = 0; count < N - 1; count++) {
+        // Pick the minimum distance vertex from the set of vertices not yet processed
+        int u = minDistance(dist, visited, N);
+
+        // Mark the picked vertex as processed
+        visited[u] = 1;
+
+        // Update dist[] value of the adjacent vertices of the picked vertex
+        for (int v = 0; v < N; v++) {
+            // Update dist[v] only if it's not visited, there's an edge from u to v,
+            // and the total weight of the path from src to v through u is smaller than the current value of dist[v]
+            if (!visited[v] && graph[u][v] && dist[u] != INT_MAX && dist[u] + graph[u][v] < dist[v]) {
+                dist[v] = dist[u] + graph[u][v];
+                parent[v] = u;  // Record the parent to reconstruct the path
+            }
+        }
+    }
+
+    // Print the constructed distance array and paths
+    printSolution(dist, parent, N, src);
+}
+
+int main() {
+    int N; // Number of vertices in the graph
+    printf("Enter the number of nodes: ");
+    scanf("%d", &N);
+
+    // Dynamically allocate the graph (cost matrix)
+    int** graph = (int**)malloc(N * sizeof(int*));
+    for (int i = 0; i < N; i++) {
+        graph[i] = (int*)malloc(N * sizeof(int));
+    }
+
+    int source, destination; // Starting and destination vertices
+    int parent[N]; // Declare parent array to store the path
+
+    // Taking graph input from the user
+    printf("Enter the cost matrix (%dx%d) row by row, space-separated (0 for no direct edge):\n", N, N);
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++) {
+            scanf("%d", &graph[i][j]);
+        }
+    }
+
+    // Taking source vertex input
+    printf("Enter the starting vertex (1 to %d): ", N);
+    scanf("%d", &source);
+    source--; // Convert to 0-indexed for internal processing
+
+    // Taking destination vertex input
+    printf("Enter the destination vertex (1 to %d): ", N);
+    scanf("%d", &destination);
+    destination--; // Convert to 0-indexed for internal processing
+
+    // Run Dijkstra's algorithm from the source
+    printf("Dijkstra's Algorithm: Shortest Path from Vertex %d to Vertex %d\n", source + 1, destination + 1);
+    dijkstra(graph, N, source, parent); // Pass parent array to the dijkstra function
+
+    // Printing the shortest path to the destination
+    printf("Shortest path from %d to %d: ", source + 1, destination + 1);
+    printPath(parent, destination);
+    printf("\n");
+
+    // Free allocated memory
+    for (int i = 0; i < N; i++) {
+        free(graph[i]);
+    }
+    free(graph);
+
+    return 0;
+}
+
+Enter the number of nodes: 6
+Enter the cost matrix (6x6) row by row, space-separated (0 for no direct edge):
+0 2 0 8 0 0
+2 0 0 5 6 0
+0 0 0 0 9 3
+8 5 0 0 3 2
+0 6 9 3 0 1
+0 0 3 2 1 0
+Enter the starting vertex (1 to 6): 1
+Enter the destination vertex (1 to 6): 3
+Dijkstra's Algorithm: Shortest Path from Vertex 1 to Vertex 3
+
+Node     Shortest Distance      Previous Node
+1                0              N/A
+2                2              1
+3                12             6
+4                7              2
+5                8              2
+6                9              4
+Shortest path from 1 to 3: 1 -> 2 -> 4 -> 6 -> 3#include <stdio.h>
+#include <stdlib.h> // For malloc, free
+#include <limits.h> // For using INT_MAX
+
+// Function to find the vertex with the minimum distance value, from
+// the set of vertices not yet included in the shortest path tree
+int minDistance(int dist[], int visited[], int N) {
+    int min = INT_MAX, min_index;
+
+    for (int v = 0; v < N; v++)
+        if (!visited[v] && dist[v] <= min) {
+            min = dist[v];
+            min_index = v;
+        }
+
+    return min_index;
+}
+
+// Function to print the shortest path from source to destination
+void printPath(int parent[], int vertex) {
+    if (parent[vertex] == -1) {
+        // This is the source node
+        printf("%d", vertex + 1); // Print as 1-indexed
+        return;
+    }
+    printPath(parent, parent[vertex]);
+    printf(" -> %d", vertex + 1); // Print as 1-indexed
+}
+
+// Function to print the shortest distances and paths from source
+void printSolution(int dist[], int parent[], int N, int src) {
+    printf("\nNode\t Shortest Distance\tPrevious Node\n");
+    for (int i = 0; i < N; i++) {
+        printf("%d \t\t %d \t\t", i + 1, dist[i]);
+        if (parent[i] == -1) {
+            printf("N/A\n");
+        } else {
+            printf("%d\n", parent[i] + 1); // Print as 1-indexed
+        }
+    }
+}
+
+// Dijkstra's algorithm implementation to find the shortest path
+void dijkstra(int** graph, int N, int src, int parent[]) {
+    int dist[N];      // The output array. dist[i] will hold the shortest distance from src to i
+    int visited[N];   // visited[i] will be true if vertex i is included in shortest path tree
+
+    // Initialize all distances as INFINITE, visited[] as false, and parent[] as -1
+    for (int i = 0; i < N; i++) {
+        dist[i] = INT_MAX;
+        visited[i] = 0;
+        parent[i] = -1;
+    }
+
+    // Distance of source vertex from itself is always 0
+    dist[src] = 0;
+
+    // Find shortest path for all vertices
+    for (int count = 0; count < N - 1; count++) {
+        // Pick the minimum distance vertex from the set of vertices not yet processed
+        int u = minDistance(dist, visited, N);
+
+        // Mark the picked vertex as processed
+        visited[u] = 1;
+
+        // Update dist[] value of the adjacent vertices of the picked vertex
+        for (int v = 0; v < N; v++) {
+            // Update dist[v] only if it's not visited, there's an edge from u to v,
+            // and the total weight of the path from src to v through u is smaller than the current value of dist[v]
+            if (!visited[v] && graph[u][v] && dist[u] != INT_MAX && dist[u] + graph[u][v] < dist[v]) {
+                dist[v] = dist[u] + graph[u][v];
+                parent[v] = u;  // Record the parent to reconstruct the path
+            }
+        }
+    }
+
+    // Print the constructed distance array and paths
+    printSolution(dist, parent, N, src);
+}
+
+int main() {
+    int N; // Number of vertices in the graph
+    printf("Enter the number of nodes: ");
+    scanf("%d", &N);
+
+    // Dynamically allocate the graph (cost matrix)
+    int** graph = (int**)malloc(N * sizeof(int*));
+    for (int i = 0; i < N; i++) {
+        graph[i] = (int*)malloc(N * sizeof(int));
+    }
+
+    int source, destination; // Starting and destination vertices
+    int parent[N]; // Declare parent array to store the path
+
+    // Taking graph input from the user
+    printf("Enter the cost matrix (%dx%d) row by row, space-separated (0 for no direct edge):\n", N, N);
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++) {
+            scanf("%d", &graph[i][j]);
+        }
+    }
+
+    // Taking source vertex input
+    printf("Enter the starting vertex (1 to %d): ", N);
+    scanf("%d", &source);
+    source--; // Convert to 0-indexed for internal processing
+
+    // Taking destination vertex input
+    printf("Enter the destination vertex (1 to %d): ", N);
+    scanf("%d", &destination);
+    destination--; // Convert to 0-indexed for internal processing
+
+    // Run Dijkstra's algorithm from the source
+    printf("Dijkstra's Algorithm: Shortest Path from Vertex %d to Vertex %d\n", source + 1, destination + 1);
+    dijkstra(graph, N, source, parent); // Pass parent array to the dijkstra function
+
+    // Printing the shortest path to the destination
+    printf("Shortest path from %d to %d: ", source + 1, destination + 1);
+    printPath(parent, destination);
+    printf("\n");
+
+    // Free allocated memory
+    for (int i = 0; i < N; i++) {
+        free(graph[i]);
+    }
+    free(graph);
+
+    return 0;
+}
+Output:
+Enter the number of nodes: 6
+Enter the cost matrix (6x6) row by row, space-separated (0 for no direct edge):
+0 2 0 8 0 0
+2 0 0 5 6 0
+0 0 0 0 9 3
+8 5 0 0 3 2
+0 6 9 3 0 1
+0 0 3 2 1 0
+Enter the starting vertex (1 to 6): 1
+Enter the destination vertex (1 to 6): 3
+Dijkstra's Algorithm: Shortest Path from Vertex 1 to Vertex 3
+
+Node     Shortest Distance      Previous Node
+1                0              N/A
+2                2              1
+3                12             6
+4                7              2
+5                8              2
+6                9              4
+Shortest path from 1 to 3: 1 -> 2 -> 4 -> 6 -> 3
